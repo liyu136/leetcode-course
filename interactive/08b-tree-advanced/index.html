@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>08b · 二叉树进阶模式</title>
+  <link rel="stylesheet" href="../shared/course.css">
+</head>
+<body>
+<aside>
+  <div class="brand"><small>LEETCODE · INTERACTIVE</small><strong>08b 二叉树进阶</strong></div>
+  <nav>
+    <a href="#balance">1. 平衡树：向上交作业</a><a href="#sorted">2. 有序数组建 BST</a>
+    <a href="#build">3. 前序 + 中序建树</a><a href="#flatten">4. 展开为链表</a>
+    <a href="#prefix">5. 路径总和 III</a><a href="#maxpath">6. 最大路径和</a>
+    <a href="#summary">7. 模式总结</a>
+  </nav>
+  <div class="progress"><i></i></div><p class="muted" id="progressText">学习进度 0%</p>
+</aside>
+<main>
+  <header class="hero">
+    <span class="eyebrow">从“会遍历”到“会设计递归”</span>
+    <h1>二叉树进阶模式</h1>
+    <p>真正的难点不是 DFS，而是决定：子树应该返回什么？当前节点又要更新什么？本页用动画把这两件事拆开。</p>
+    <div class="callout"><b>核心句：</b>递归函数是节点向父节点提交的一份“作业”。先定义作业内容，再写代码。</div>
+  </header>
+
+  <section class="chapter" id="balance">
+    <div class="chapter-no">01</div><h2>平衡二叉树：高度，还是失败信号？</h2>
+    <p>普通求高度只返回整数。平衡判断可以把“不平衡”编码成 <code>-1</code>：一旦子树失败，就一路向上传播，不必重复求高度。</p>
+    <div class="demo-grid">
+      <div class="stage"><svg viewBox="0 0 480 260" id="balTree">
+        <g class="edges"><line x1="240" y1="45" x2="140" y2="115"/><line x1="240" y1="45" x2="340" y2="115"/><line x1="140" y1="115" x2="90" y2="195"/><line x1="90" y1="195" x2="55" y2="240"/></g>
+        <g class="nodes"><g data-v="4" transform="translate(240 45)"><circle r="25"/><text>4</text></g><g data-v="2" transform="translate(140 115)"><circle r="25"/><text>2</text></g><g data-v="6" transform="translate(340 115)"><circle r="25"/><text>6</text></g><g data-v="1" transform="translate(90 195)"><circle r="25"/><text>1</text></g><g data-v="0" transform="translate(55 240)"><circle r="20"/><text>0</text></g></g>
+      </svg></div>
+      <div class="panel"><h3>后序计算器</h3><p id="balText">点击下一步，从叶子开始交作业。</p><div class="chips" id="balChips"></div><button onclick="stepBalance()">下一步</button><button class="secondary" onclick="resetBalance()">重置</button></div>
+    </div>
+    <pre><code>def height(node):
+    if not node: return 0
+    left = height(node.left)
+    if left == -1: return -1
+    right = height(node.right)
+    if right == -1: return -1
+    if abs(left - right) > 1: return -1
+    return 1 + max(left, right)</code></pre>
+  </section>
+
+  <section class="chapter" id="sorted">
+    <div class="chapter-no">02</div><h2>有序数组建 BST：每次选中点</h2>
+    <p>BST 要保证左小右大；“平衡”要求两边规模接近。因此自然选择区间中点作为根，再递归处理左右区间。</p>
+    <div class="card"><div class="array" id="sortArray"></div><p id="sortText">数组 [-10, -3, 0, 5, 9]。注意递归处理的是下标区间，不要反复切片。</p><button onclick="stepSorted()">选择下一个根</button><button class="secondary" onclick="resetSorted()">重置</button></div>
+    <pre><code>def build(left, right):
+    if left > right: return None
+    mid = (left + right) // 2
+    root = TreeNode(nums[mid])
+    root.left = build(left, mid - 1)
+    root.right = build(mid + 1, right)
+    return root</code></pre>
+  </section>
+
+  <section class="chapter" id="build">
+    <div class="chapter-no">03</div><h2>前序 + 中序重建：一个负责找根，一个负责切开</h2>
+    <div class="two-col"><div class="card"><h3>前序 preorder</h3><div class="array" id="preArray"></div><p>第一个未使用元素就是当前根。</p></div><div class="card"><h3>中序 inorder</h3><div class="array" id="inArray"></div><p>根左边属于左子树，右边属于右子树。</p></div></div>
+    <div class="card"><p id="buildText">点击演示递归区间如何缩小。</p><button onclick="stepBuild()">下一步</button><button class="secondary" onclick="resetBuild()">重置</button></div>
+    <pre><code>index = {value: i for i, value in enumerate(inorder)}
+pre_i = 0
+def build(lo, hi):
+    nonlocal pre_i
+    if lo > hi: return None
+    value = preorder[pre_i]; pre_i += 1
+    root = TreeNode(value)
+    mid = index[value]
+    root.left = build(lo, mid - 1)
+    root.right = build(mid + 1, hi)
+    return root</code></pre>
+    <div class="callout warning"><b>前提：</b>节点值互不相同。哈希表让“根在中序中的位置”从 O(n) 查询降为 O(1)。</div>
+  </section>
+
+  <section class="chapter" id="flatten">
+    <div class="chapter-no">04</div><h2>展开为链表：倒着连接更容易</h2>
+    <p>目标顺序是“根 → 左 → 右”。如果按反向的“右 → 左 → 根”遍历，每次只需把当前节点的 <code>right</code> 指向上一个处理好的节点。</p>
+    <div class="card"><div class="chain" id="flatChain"></div><p id="flatText">处理顺序：6, 5, 4, 3, 2, 1。链表会从头部逐步长出来。</p><button onclick="stepFlat()">连接一个节点</button><button class="secondary" onclick="resetFlat()">重置</button></div>
+    <pre><code>previous = None
+def dfs(node):
+    nonlocal previous
+    if not node: return
+    dfs(node.right)
+    dfs(node.left)
+    node.right = previous
+    node.left = None
+    previous = node</code></pre>
+  </section>
+
+  <section class="chapter" id="prefix">
+    <div class="chapter-no">05</div><h2>路径总和 III：树上的前缀和</h2>
+    <p>到当前节点的路径和为 <code>current</code>。若祖先路径中出现过 <code>current - target</code>，中间那一段的和就恰好是 target。</p>
+    <div class="demo-grid"><div class="stage"><div class="chain" id="pathChain"></div></div><div class="panel"><h3>沿路径进入与退出</h3><p id="prefixText">示例路径 10 → 5 → 3，target = 8。</p><div class="chips" id="prefixMap"></div><button onclick="stepPrefix()">下一步</button><button class="secondary" onclick="resetPrefix()">重置</button></div></div>
+    <pre><code>prefix = {0: 1}
+def dfs(node, current):
+    if not node: return 0
+    current += node.val
+    answer = prefix.get(current - target, 0)
+    prefix[current] = prefix.get(current, 0) + 1
+    answer += dfs(node.left, current) + dfs(node.right, current)
+    prefix[current] -= 1       # 离开当前路径：撤销现场
+    return answer</code></pre>
+    <div class="callout"><b>为什么要回溯？</b>prefix 只允许包含“当前根到当前节点”这条路径。离开节点若不减一，兄弟分支会错误地互相借用记录。</div>
+  </section>
+
+  <section class="chapter" id="maxpath">
+    <div class="chapter-no">06</div><h2>最大路径和：返回值与全局答案不是同一件事</h2>
+    <div class="compare"><div class="card"><h3>交给父节点</h3><p>父节点只能选择左边或右边的一条链：</p><p class="formula">node.val + max(left, right)</p></div><div class="card"><h3>更新全局答案</h3><p>路径可以在当前节点拐弯，同时接上两边：</p><p class="formula">node.val + left + right</p></div></div>
+    <div class="card"><p id="gainText">示例：节点 20，左侧贡献 15，右侧贡献 7。</p><button onclick="showGain()">计算两种值</button></div>
+    <pre><code>best = float('-inf')
+def gain(node):
+    nonlocal best
+    if not node: return 0
+    left = max(gain(node.left), 0)
+    right = max(gain(node.right), 0)
+    best = max(best, node.val + left + right)
+    return node.val + max(left, right)</code></pre>
+  </section>
+
+  <section class="chapter" id="summary">
+    <div class="chapter-no">07</div><h2>先问这三句，再写递归</h2>
+    <div class="three-col"><div class="card"><span class="tag">① 返回</span><h3>子树交什么？</h3><p>高度、单边贡献、节点本身，还是失败信号？</p></div><div class="card"><span class="tag">② 合并</span><h3>当前怎么计算？</h3><p>如何使用 left 和 right 得到自己的结果？</p></div><div class="card"><span class="tag">③ 副作用</span><h3>是否更新外部状态？</h3><p>全局最优、计数器、前缀表是否需要更新或回溯？</p></div></div>
+    <div class="quiz" data-answer="b"><h3>小测验</h3><p>最大路径和中，为什么不能把 <code>node + left + right</code> 返回给父节点？</p><button data-choice="a">因为计算太慢</button><button data-choice="b">因为返回给父节点的路径不能分叉</button><button data-choice="c">因为左右子树不能同时为正</button><p class="feedback"></p></div>
+  </section>
+</main>
+<script src="../shared/course.js"></script>
+<script>
+CourseUI.init(7); CourseUI.quiz();
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+let bi=0; const bsteps=[['0','叶子 0 返回高度 1'],['1','节点 1：左高 1、右高 0，返回 2'],['2','节点 2：左高 2、右高 0，差值 2，返回 -1'],['4','根发现左子树为 -1，立即传播 -1']];
+function resetBalance(){bi=0; $$('#balTree g[data-v]').forEach(x=>x.classList.remove('hot')); $('#balChips').innerHTML=''; $('#balText').textContent='点击下一步，从叶子开始交作业。'}
+function stepBalance(){if(bi>=bsteps.length)return; const [v,t]=bsteps[bi++]; $$('#balTree g[data-v]').forEach(x=>x.classList.toggle('hot',x.dataset.v===v)); $('#balText').textContent=t; $('#balChips').insertAdjacentHTML('beforeend',`<span>${v}：${t.includes('-1')?'-1':'高度已知'}</span>`)}
+const nums=[-10,-3,0,5,9], mids=[2,0,3,1,4]; let si=0;
+function paintArray(id,arr,hot=-1,used=[]){$(id).innerHTML=arr.map((v,i)=>`<span class="cell ${i===hot?'hot':''} ${used.includes(i)?'done':''}">${v}</span>`).join('')}
+function resetSorted(){si=0;paintArray('#sortArray',nums);$('#sortText').textContent='数组 [-10, -3, 0, 5, 9]。注意递归处理的是下标区间，不要反复切片。'}
+function stepSorted(){if(si>=mids.length)return; const m=mids[si++];paintArray('#sortArray',nums,m,mids.slice(0,si-1));$('#sortText').textContent=`选择下标 ${m}（值 ${nums[m]}）作为当前区间的根；随后递归处理它的左右区间。`}
+const pre=[3,9,20,15,7], ino=[9,3,15,20,7], buildSteps=[[3,0,4],[9,0,0],[20,2,4],[15,2,2],[7,4,4]];let bu=0;
+function resetBuild(){bu=0;paintArray('#preArray',pre);paintArray('#inArray',ino);$('#buildText').textContent='点击演示递归区间如何缩小。'}
+function stepBuild(){if(bu>=buildSteps.length)return;const [root,l,r]=buildSteps[bu++];paintArray('#preArray',pre,bu-1,[...Array(bu-1).keys()]);paintArray('#inArray',ino,ino.indexOf(root));$('#buildText').textContent=`根 = ${root}；当前中序区间 [${l}, ${r}]，根位于下标 ${ino.indexOf(root)}。`}
+const order=[6,5,4,3,2,1];let fi=0;
+function resetFlat(){fi=0;$('#flatChain').innerHTML='';$('#flatText').textContent='处理顺序：6, 5, 4, 3, 2, 1。链表会从头部逐步长出来。'}
+function stepFlat(){if(fi>=order.length)return;const v=order[fi++], chain=order.slice(0,fi).reverse();$('#flatChain').innerHTML=chain.map((x,i)=>`<span class="chip hot">${x}</span>${i<chain.length-1?'<b>→</b>':''}`).join('');$('#flatText').textContent=`处理 ${v}：令 ${v}.right = previous，再把 previous 更新为 ${v}。`}
+let pi=0;const pevents=[['进入 10：current=10，查找 2','0:1, 10:1'],['进入 5：current=15，查找 7','0:1, 10:1, 15:1'],['进入 3：current=18，查找 10，命中 1 次！','0:1, 10:1, 15:1, 18:1'],['退出 3：撤销 prefix[18]','0:1, 10:1, 15:1']];
+function resetPrefix(){pi=0;$('#pathChain').innerHTML='<span class="chip">10</span><b>→</b><span class="chip">5</span><b>→</b><span class="chip">3</span>';$('#prefixMap').innerHTML='<span>0: 1</span>';$('#prefixText').textContent='示例路径 10 → 5 → 3，target = 8。'}
+function stepPrefix(){if(pi>=pevents.length)return;const [t,m]=pevents[pi++];$('#prefixText').textContent=t;$('#prefixMap').innerHTML=m.split(', ').map(x=>`<span>${x}</span>`).join('')}
+function showGain(){$('#gainText').innerHTML='交给父节点：<b>20 + max(15, 7) = 35</b>；用于更新全局答案：<b>20 + 15 + 7 = 42</b>。'}
+resetBalance();resetSorted();resetBuild();resetFlat();resetPrefix();
+</script>
+</body></html>

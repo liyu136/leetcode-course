@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>09 · 堆与优先队列</title><link rel="stylesheet" href="../shared/course.css"></head>
+<body><aside><div class="brand"><small>LEETCODE · INTERACTIVE</small><strong>09 堆与优先队列</strong></div><nav><a href="#idea">1. 堆解决什么问题</a><a href="#shape">2. 数组里的树</a><a href="#motion">3. 上浮与下沉</a><a href="#python">4. Python heapq</a><a href="#topk">5. 固定大小 Top K</a><a href="#merge">6. 合并 K 个序列</a><a href="#summary">7. 选择与小测</a></nav><div class="progress"><i></i></div><p class="muted" id="progressText">学习进度 0%</p></aside>
+<main><header class="hero"><span class="eyebrow">每次只关心“最小 / 最大的那个”</span><h1>堆与优先队列</h1><p>堆不是完整排序。它只维持一个承诺：堆顶永远是当前最小值（或最大值），插入和取出都只需 O(log n)。</p><div class="callout"><b>判断信号：</b>题目反复出现“当前最小”“第 k 大”“前 k 个”“从若干候选中选最优”，优先考虑堆。</div></header>
+<section class="chapter" id="idea"><div class="chapter-no">01</div><h2>为什么不每次排序？</h2><div class="compare"><div class="card"><h3>完整排序</h3><p>一次排序 O(n log n)，你知道所有元素的先后顺序。</p><p>信息很全，但许多 Top K 题根本用不到。</p></div><div class="card"><h3>大小为 k 的堆</h3><p>扫描 n 个元素，每次维护 O(log k)。</p><p>只保存真正可能进入答案的 k 个候选。</p></div></div></section>
+<section class="chapter" id="shape"><div class="chapter-no">02</div><h2>数组里的完全二叉树</h2><p>下标从 0 开始：节点 i 的左孩子是 <code>2*i+1</code>，右孩子是 <code>2*i+2</code>，父节点是 <code>(i-1)//2</code>。</p><div class="demo-grid"><div class="stage"><svg viewBox="0 0 500 250"><g class="edges"><line x1="250" y1="50" x2="150" y2="125"/><line x1="250" y1="50" x2="350" y2="125"/><line x1="150" y1="125" x2="95" y2="205"/><line x1="150" y1="125" x2="205" y2="205"/></g><g class="nodes"><g transform="translate(250 50)"><circle r="26"/><text>1</text></g><g transform="translate(150 125)"><circle r="26"/><text>3</text></g><g transform="translate(350 125)"><circle r="26"/><text>4</text></g><g transform="translate(95 205)"><circle r="26"/><text>8</text></g><g transform="translate(205 205)"><circle r="26"/><text>5</text></g></g></svg></div><div class="panel"><h3>内存中其实是</h3><div class="array"><span class="cell hot">1</span><span class="cell">3</span><span class="cell">4</span><span class="cell">8</span><span class="cell">5</span></div><p><code>[1, 3, 4, 8, 5]</code></p><p>小顶堆只要求父 ≤ 子；兄弟之间、不同分支之间不保证有序。</p></div></div></section>
+<section class="chapter" id="motion"><div class="chapter-no">03</div><h2>插入上浮，弹出下沉</h2><div class="card"><div class="array" id="heapArray"></div><p id="heapText">初始小顶堆 [2, 5, 4, 9, 7]，准备插入 1。</p><button onclick="heapStep()">下一步</button><button class="secondary" onclick="heapReset()">重置</button></div><div class="two-col"><div class="card"><h3>heappush</h3><p>先放在数组末尾，再与父节点比较；更小就交换，直到满足堆序。</p></div><div class="card"><h3>heappop</h3><p>取走堆顶，把末尾放到顶部；再与较小的孩子交换，直到满足堆序。</p></div></div></section>
+<section class="chapter" id="python"><div class="chapter-no">04</div><h2>Python 的 heapq</h2><pre><code>import heapq
+
+heap = []
+heapq.heappush(heap, 5)
+heapq.heappush(heap, 2)
+smallest = heapq.heappop(heap)  # 2
+
+# 最大堆：存相反数
+heapq.heappush(heap, -10)
+largest = -heapq.heappop(heap)
+
+# 元组先比较 priority，再比较 value
+heapq.heappush(tasks, (priority, task_id, task))</code></pre><div class="callout warning"><b>常见坑：</b>元组第一项相同时，Python 会继续比较第二项。若第二项是不可比较的对象，加入唯一编号 <code>task_id</code> 作为稳定的打破平局字段。</div></section>
+<section class="chapter" id="topk"><div class="chapter-no">05</div><h2>第 k 大：保存“最大的 k 个”</h2><p>使用大小为 k 的<strong>小顶堆</strong>。堆顶正好是这 k 个大数里最小的，也就是整体第 k 大。</p><div class="demo-grid"><div class="stage"><div class="array" id="stream"></div></div><div class="panel"><h3>nums = [3,2,1,5,6,4], k = 2</h3><div class="chips" id="topHeap"></div><p id="topText">逐个读数。超过 k 个时，弹出最小值。</p><button onclick="topStep()">读取下一个</button><button class="secondary" onclick="topReset()">重置</button></div></div><pre><code>heap = []
+for x in nums:
+    heapq.heappush(heap, x)
+    if len(heap) > k:
+        heapq.heappop(heap)
+return heap[0]</code></pre></section>
+<section class="chapter" id="merge"><div class="chapter-no">06</div><h2>合并 K 个有序序列：只放每条队伍的队首</h2><div class="card"><div id="queues"></div><p id="mergeText">堆里只需要 K 个候选，而不是把所有元素一次性倒进去。</p><button onclick="mergeStep()">弹出当前最小</button><button class="secondary" onclick="mergeReset()">重置</button><div class="chain" id="merged"></div></div><pre><code># (值, 来自第几条序列, 在该序列的位置)
+heap = [(seq[0], i, 0) for i, seq in enumerate(sequences) if seq]
+heapq.heapify(heap)
+while heap:
+    value, row, col = heapq.heappop(heap)
+    answer.append(value)
+    if col + 1 < len(sequences[row]):
+        nxt = sequences[row][col + 1]
+        heapq.heappush(heap, (nxt, row, col + 1))</code></pre></section>
+<section class="chapter" id="summary"><div class="chapter-no">07</div><h2>看到题目时怎么选？</h2><div class="three-col"><div class="card"><h3>一次找最值</h3><p><code>min</code> / <code>max</code> 通常足够。</p></div><div class="card"><h3>反复取动态最值</h3><p>优先队列 / 堆。</p></div><div class="card"><h3>需要完整顺序</h3><p>排序通常更直接。</p></div></div><div class="quiz" data-answer="c"><h3>小测验</h3><p>求数组第 10 大，固定大小堆应该使用什么堆？</p><button data-choice="a">大小为 10 的大顶堆</button><button data-choice="b">大小为 n 的小顶堆</button><button data-choice="c">大小为 10 的小顶堆</button><p class="feedback"></p></div></section>
+</main><script src="../shared/course.js"></script><script>
+CourseUI.init(7);CourseUI.quiz();const $=s=>document.querySelector(s);
+const hstates=[[2,5,4,9,7],[2,5,4,9,7,1],[2,5,1,9,7,4],[1,5,2,9,7,4]],htexts=['初始小顶堆 [2, 5, 4, 9, 7]，准备插入 1。','1 放到末尾。它小于父节点 4，需要交换。','1 上浮到下标 2。它仍小于父节点 2，再交换。','完成：1 到达堆顶，父 ≤ 子再次成立。'];let hi=0;
+function drawHeap(){ $('#heapArray').innerHTML=hstates[hi].map((v,i)=>`<span class="cell ${hi&&((hi===1&&i===5)||(hi===2&&i===2)||(hi===3&&i===0))?'hot':''}">${v}</span>`).join('');$('#heapText').textContent=htexts[hi]}
+function heapStep(){if(hi<hstates.length-1)hi++;drawHeap()}function heapReset(){hi=0;drawHeap()}
+const vals=[3,2,1,5,6,4];let ti=0,th=[];function topReset(){ti=0;th=[];$('#stream').innerHTML=vals.map(v=>`<span class="cell">${v}</span>`).join('');$('#topHeap').innerHTML='';$('#topText').textContent='逐个读数。超过 k 个时，弹出最小值。'}
+function topStep(){if(ti>=vals.length)return;const x=vals[ti++];th.push(x);th.sort((a,b)=>a-b);let removed=null;if(th.length>2)removed=th.shift();$('#stream').innerHTML=vals.map((v,i)=>`<span class="cell ${i===ti-1?'hot':''} ${i<ti-1?'done':''}">${v}</span>`).join('');$('#topHeap').innerHTML=th.map(v=>`<span>${v}</span>`).join('');$('#topText').textContent=`读入 ${x}${removed!==null?`，超过 2 个，弹出 ${removed}`:''}。当前候选：${th.join(', ')}${ti===vals.length?`；答案是堆顶 ${th[0]}`:''}`}
+const seqs=[[1,4,7],[2,5,8],[3,6,9]];let pos=[0,0,0],out=[];function renderQueues(){ $('#queues').innerHTML=seqs.map((r,i)=>`<div class="array">${r.map((v,j)=>`<span class="cell ${j===pos[i]?'hot':''} ${j<pos[i]?'done':''}">${v}</span>`).join('')}</div>`).join('');$('#merged').innerHTML=out.map((v,i)=>`<span class="chip">${v}</span>${i<out.length-1?'<b>→</b>':''}`).join('')}
+function mergeReset(){pos=[0,0,0];out=[];renderQueues();$('#mergeText').textContent='堆里只需要 K 个候选，而不是把所有元素一次性倒进去。'}function mergeStep(){let row=-1,best=Infinity;seqs.forEach((s,i)=>{if(pos[i]<s.length&&s[pos[i]]<best){best=s[pos[i]];row=i}});if(row<0)return;out.push(best);pos[row]++;renderQueues();$('#mergeText').textContent=`弹出 ${best}（第 ${row+1} 条序列），再把这条序列的新队首加入堆。`}
+drawHeap();topReset();mergeReset();
+</script></body></html>

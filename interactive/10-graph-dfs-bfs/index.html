@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>10 · 图、DFS 与 BFS</title><link rel="stylesheet" href="../shared/course.css"></head>
+<body><aside><div class="brand"><small>LEETCODE · INTERACTIVE</small><strong>10 图、DFS 与 BFS</strong></div><nav><a href="#model">1. 图是什么</a><a href="#search">2. DFS 与 BFS</a><a href="#island">3. 岛屿问题</a><a href="#component">4. 连通与环</a><a href="#topo">5. 拓扑排序</a><a href="#clone">6. 克隆图</a><a href="#summary">7. 模板与小测</a></nav><div class="progress"><i></i></div><p class="muted" id="progressText">学习进度 0%</p></aside>
+<main><header class="hero"><span class="eyebrow">树是特殊的图；图允许绕回来</span><h1>图、DFS 与 BFS</h1><p>图题最关键的新增概念只有一个：<strong>visited</strong>。树通常没有回路，而图可能从 A 走到 B，再走回 A。</p><div class="callout"><b>统一视角：</b>DFS 用栈（或递归）管理“下一步去哪里”，BFS 用队列管理。其余逻辑通常都是：取出 → 检查 → 标记 → 加入邻居。</div></header>
+<section class="chapter" id="model"><div class="chapter-no">01</div><h2>节点 + 边 = 图</h2><div class="demo-grid"><div class="stage"><svg viewBox="0 0 500 260"><g class="edges"><line x1="120" y1="60" x2="250" y2="55"/><line x1="250" y1="55" x2="385" y2="115"/><line x1="120" y1="60" x2="150" y2="205"/><line x1="150" y1="205" x2="330" y2="210"/><line x1="250" y1="55" x2="330" y2="210"/></g><g class="nodes"><g transform="translate(120 60)"><circle r="27"/><text>A</text></g><g transform="translate(250 55)"><circle r="27"/><text>B</text></g><g transform="translate(385 115)"><circle r="27"/><text>C</text></g><g transform="translate(150 205)"><circle r="27"/><text>D</text></g><g transform="translate(330 210)"><circle r="27"/><text>E</text></g></g></svg></div><div class="panel"><h3>邻接表</h3><pre><code>graph = {
+  'A': ['B', 'D'],
+  'B': ['A', 'C', 'E'],
+  'C': ['B'],
+  'D': ['A', 'E'],
+  'E': ['B', 'D']
+}</code></pre><p>稀疏图最常用邻接表：空间 O(V + E)。矩阵则是 O(V²)。</p></div></div></section>
+<section class="chapter" id="search"><div class="chapter-no">02</div><h2>DFS 深入一条路，BFS 一圈圈扩散</h2><div class="card"><div class="switch"><button id="dfsBtn" onclick="setMode('dfs')">DFS</button><button id="bfsBtn" class="secondary" onclick="setMode('bfs')">BFS</button></div><div class="demo-grid"><div class="stage"><svg viewBox="0 0 500 260" id="searchGraph"><g class="edges"><line x1="100" y1="130" x2="220" y2="60"/><line x1="100" y1="130" x2="220" y2="200"/><line x1="220" y1="60" x2="380" y2="55"/><line x1="220" y1="60" x2="380" y2="130"/><line x1="220" y1="200" x2="380" y2="205"/></g><g class="nodes"><g data-node="A" transform="translate(100 130)"><circle r="27"/><text>A</text></g><g data-node="B" transform="translate(220 60)"><circle r="27"/><text>B</text></g><g data-node="C" transform="translate(220 200)"><circle r="27"/><text>C</text></g><g data-node="D" transform="translate(380 55)"><circle r="27"/><text>D</text></g><g data-node="E" transform="translate(380 130)"><circle r="27"/><text>E</text></g><g data-node="F" transform="translate(380 205)"><circle r="27"/><text>F</text></g></g></svg></div><div class="panel"><h3 id="modeTitle">DFS：栈 / 递归</h3><div class="chips" id="worklist"></div><p id="searchText">从 A 开始。点击一步，观察待办容器。</p><button onclick="searchStep()">走一步</button><button class="secondary" onclick="searchReset()">重置</button></div></div></div><pre><code># DFS（递归）
+def dfs(node):
+    if node in visited: return
+    visited.add(node)
+    for neighbor in graph[node]:
+        dfs(neighbor)
+
+# BFS（队列）
+queue = deque([start]); visited = {start}
+while queue:
+    node = queue.popleft()
+    for neighbor in graph[node]:
+        if neighbor not in visited:
+            visited.add(neighbor)       # 入队时标记
+            queue.append(neighbor)</code></pre></section>
+<section class="chapter" id="island"><div class="chapter-no">03</div><h2>岛屿数量：二维网格也是图</h2><p>每个陆地格子是节点，上下左右相邻就是边。发现一块没访问过的陆地，答案加一，再用 DFS/BFS 淹掉整座岛。</p><div class="demo-grid"><div class="stage"><div class="grid-board" id="islandGrid"></div></div><div class="panel"><h3>扫描 + 搜索</h3><p id="islandText">按行扫描；遇到未访问的 1，就发现一座新岛。</p><p class="formula">islands = <span id="islandCount">0</span></p><button onclick="islandStep()">下一步</button><button class="secondary" onclick="islandReset()">重置</button></div></div><div class="callout warning"><b>边界检查：</b><code>0 ≤ row &lt; rows</code>、<code>0 ≤ col &lt; cols</code>，并且只访问陆地和未访问位置。</div></section>
+<section class="chapter" id="component"><div class="chapter-no">04</div><h2>连通分量与环：不要混淆方向</h2><div class="compare"><div class="card"><h3>无向图判断环</h3><p>DFS 看到已访问邻居不一定是环，它可能只是刚刚走来的父节点。</p><pre><code>if visited(neighbor) and neighbor != parent:
+    found_cycle = True</code></pre></div><div class="card"><h3>有向图判断环</h3><p>使用三种状态：未访问、正在当前路径中、已经完成。遇到“正在路径中”的节点才是回边。</p><pre><code>0 = unvisited
+1 = visiting
+2 = finished</code></pre></div></div><p>连通分量的通用计数：遍历所有节点；每次遇到未访问节点，计数 +1，并搜索标记它所在的整个分量。</p></section>
+<section class="chapter" id="topo"><div class="chapter-no">05</div><h2>拓扑排序：先做没有前置条件的任务</h2><p>有向边 <code>A → C</code> 表示先 A 后 C。入度是一个节点尚未解决的前置条件数量。</p><div class="demo-grid"><div class="stage"><div id="degreeRows"></div></div><div class="panel"><h3>Kahn 算法</h3><div class="chips" id="zeroQueue"></div><p id="topoText">先把所有入度为 0 的节点入队。</p><button onclick="topoStep()">完成一个任务</button><button class="secondary" onclick="topoReset()">重置</button><div class="chain" id="topoOrder"></div></div></div><pre><code>queue = deque(node for node in nodes if indegree[node] == 0)
+order = []
+while queue:
+    node = queue.popleft()
+    order.append(node)
+    for nxt in graph[node]:
+        indegree[nxt] -= 1
+        if indegree[nxt] == 0:
+            queue.append(nxt)
+return order if len(order) == len(nodes) else []  # 否则存在环</code></pre></section>
+<section class="chapter" id="clone"><div class="chapter-no">06</div><h2>克隆图：哈希表同时充当 visited 和对应关系</h2><div class="two-col"><div class="card"><h3>原图节点</h3><div class="chips"><span>A</span><span>B</span><span>C</span></div></div><div class="card"><h3>clone_map</h3><div class="chips"><span>A → A'</span><span>B → B'</span><span>C → C'</span></div></div></div><pre><code>copies = {}
+def clone(node):
+    if node in copies:
+        return copies[node]
+    copy = Node(node.val)
+    copies[node] = copy          # 先登记，防止环导致无限递归
+    for neighbor in node.neighbors:
+        copy.neighbors.append(clone(neighbor))
+    return copy</code></pre><div class="callout"><b>关键顺序：</b>新节点创建后立刻放入字典，然后才递归邻居。若图里 A → B → A，第二次见到 A 时可以直接返回已有副本。</div></section>
+<section class="chapter" id="summary"><div class="chapter-no">07</div><h2>图题四步检查表</h2><div class="four-col"><div class="card"><b>1. 节点是谁？</b><p>城市、课程、单词、网格格子。</p></div><div class="card"><b>2. 边是什么？</b><p>相邻、依赖、可转换关系。</p></div><div class="card"><b>3. 用何种容器？</b><p>DFS 栈；最短步数常用 BFS 队列。</p></div><div class="card"><b>4. 何时标记？</b><p>BFS 通常在入队时标记，避免重复入队。</p></div></div><div class="quiz" data-answer="a"><h3>小测验</h3><p>无权图中求起点到终点的最少边数，通常首选？</p><button data-choice="a">BFS</button><button data-choice="b">任意 DFS</button><button data-choice="c">排序</button><p class="feedback"></p></div></section>
+</main><script src="../shared/course.js"></script><script>
+CourseUI.init(7);CourseUI.quiz();const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const orders={dfs:['A','B','D','E','C','F'],bfs:['A','B','C','D','E','F']};let mode='dfs',searchI=0;
+function setMode(m){mode=m;$('#dfsBtn').classList.toggle('secondary',m!=='dfs');$('#bfsBtn').classList.toggle('secondary',m!=='bfs');$('#modeTitle').textContent=m==='dfs'?'DFS：栈 / 递归':'BFS：队列';searchReset()}
+function searchReset(){searchI=0;$$('#searchGraph [data-node]').forEach(n=>n.classList.remove('hot','done'));$('#worklist').innerHTML='<span>A</span>';$('#searchText').textContent='从 A 开始。点击一步，观察待办容器。'}
+function searchStep(){const o=orders[mode];if(searchI>=o.length)return;const v=o[searchI++];$$('#searchGraph [data-node]').forEach(n=>{n.classList.remove('hot');if(n.dataset.node===v)n.classList.add('hot');if(o.slice(0,searchI-1).includes(n.dataset.node))n.classList.add('done')});const pending=o.slice(searchI,Math.min(o.length,searchI+(mode==='dfs'?2:3)));$('#worklist').innerHTML=pending.map(x=>`<span>${x}</span>`).join('')||'<span>空</span>';$('#searchText').textContent=`访问 ${v}。${mode==='dfs'?'栈顶决定下一条深入的路。':'队首先入先出，因此按距离一层层扩散。'}`}
+const grid=[[1,1,0,0,0],[1,1,0,1,1],[0,0,0,1,1],[1,0,0,0,0]], groups=[[0,1,5,6],[8,9,13,14],[15]];let gi=0;
+function drawGrid(active=[]){$('#islandGrid').style.gridTemplateColumns='repeat(5,44px)';$('#islandGrid').innerHTML=grid.flat().map((v,i)=>`<span class="grid-cell ${v?'land':'water'} ${active.includes(i)?'hot':''}">${v}</span>`).join('')}
+function islandReset(){gi=0;drawGrid();$('#islandCount').textContent='0';$('#islandText').textContent='按行扫描；遇到未访问的 1，就发现一座新岛。'}
+function islandStep(){if(gi>=groups.length)return;drawGrid(groups[gi]);gi++;$('#islandCount').textContent=gi;$('#islandText').textContent=`从高亮格出发搜索，整块相连陆地一次标记完。这是第 ${gi} 座岛。`}
+const edges={A:['C'],B:['C','D'],C:['E'],D:['F'],E:['F'],F:[]};const all=['A','B','C','D','E','F'];let indeg={}, tq=[],to=[];
+function topoRender(){ $('#degreeRows').innerHTML=all.map(n=>`<div class="row"><b>${n}</b><span>入度 ${indeg[n]}</span></div>`).join('');$('#zeroQueue').innerHTML=tq.map(n=>`<span>${n}</span>`).join('')||'<span>空</span>';$('#topoOrder').innerHTML=to.map((n,i)=>`<span class="chip">${n}</span>${i<to.length-1?'<b>→</b>':''}`).join('')}
+function topoReset(){indeg=Object.fromEntries(all.map(n=>[n,0]));Object.values(edges).flat().forEach(n=>indeg[n]++);tq=all.filter(n=>indeg[n]===0);to=[];topoRender();$('#topoText').textContent='先把所有入度为 0 的节点入队。'}
+function topoStep(){if(!tq.length)return;const n=tq.shift();to.push(n);const unlocked=[];edges[n].forEach(x=>{indeg[x]--;if(indeg[x]===0){tq.push(x);unlocked.push(x)}});topoRender();$('#topoText').textContent=`完成 ${n}，删除它的出边${unlocked.length?`；${unlocked.join('、')} 的入度变为 0，加入队列。`:'。'}`}
+searchReset();islandReset();topoReset();
+</script></body></html>

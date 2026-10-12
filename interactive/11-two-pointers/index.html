@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>11 · 双指针</title><link rel="stylesheet" href="../shared/course.css"></head>
+<body><aside><div class="brand"><small>LEETCODE · INTERACTIVE</small><strong>11 双指针</strong></div><nav><a href="#types">1. 双指针的本质</a><a href="#palindrome">2. 相向：回文</a><a href="#twosum">3. 相向：两数之和</a><a href="#water">4. 相向：盛水容器</a><a href="#write">5. 同向：读写指针</a><a href="#three">6. 多数组与三数之和</a><a href="#summary">7. 移动依据与小测</a></nav><div class="progress"><i></i></div><p class="muted" id="progressText">学习进度 0%</p></aside>
+<main><header class="hero"><span class="eyebrow">不是“放两个变量”，而是“每一步排除一批答案”</span><h1>双指针</h1><p>双指针能把许多 O(n²) 枚举降为 O(n)，靠的不是魔法，而是数组的顺序或题目中的单调关系。</p><div class="callout"><b>每次移动前都问：</b>我为什么能确定被跳过的组合不可能成为答案？如果答不出来，移动规则可能只是猜测。</div></header>
+<section class="chapter" id="types"><div class="chapter-no">01</div><h2>三种常见姿势</h2><div class="three-col"><div class="card"><span class="tag">相向</span><h3>left → ← right</h3><p>回文、排序数组两数之和、盛水、三数之和。</p></div><div class="card"><span class="tag">同向</span><h3>slow → fast →</h3><p>移动零、原地去重、滑动窗口。</p></div><div class="card"><span class="tag">两条序列</span><h3>i → / j →</h3><p>合并有序数组、求交集、比较序列。</p></div></div></section>
+<section class="chapter" id="palindrome"><div class="chapter-no">02</div><h2>回文：比较最外层，再向内收缩</h2><div class="card"><div class="array" id="palArray"></div><p id="palText">字符串 “racecar”。左右字符相等，才有必要继续看里面。</p><button onclick="palStep()">比较一次</button><button class="secondary" onclick="palReset()">重置</button></div><pre><code>left, right = 0, len(s) - 1
+while left < right:
+    if s[left] != s[right]:
+        return False
+    left += 1
+    right -= 1
+return True</code></pre></section>
+<section class="chapter" id="twosum"><div class="chapter-no">03</div><h2>有序两数之和：一次排除一整行组合</h2><p>和太小，只能增大较小数，所以移动 left；和太大，只能减小较大数，所以移动 right。这依赖数组已经排序。</p><div class="demo-grid"><div class="stage"><div class="array" id="sumArray"></div></div><div class="panel"><h3>target = 9</h3><p id="sumText">从最小值和最大值开始。</p><div class="chips" id="sumEliminated"></div><button onclick="sumStep()">计算并移动</button><button class="secondary" onclick="sumReset()">重置</button></div></div><div class="callout"><b>证明 left 可以丢掉：</b>若 <code>nums[left] + nums[right] &lt; target</code>，那么 left 与任何不超过 right 的数相加都更小，因此 left 不可能参与答案。</div></section>
+<section class="chapter" id="water"><div class="chapter-no">04</div><h2>盛最多水的容器：移动短板</h2><p>面积 = 宽度 × min(左高, 右高)。宽度每次都会减小；只有移动短板，才有可能用更高的板补偿宽度损失。</p><div class="demo-grid"><div class="stage"><div class="bars" id="waterBars"></div></div><div class="panel"><p id="waterText">height = [1,8,6,2,5,4,8,3,7]</p><p class="formula">best = <span id="waterBest">0</span></p><button onclick="waterStep()">计算并移动短板</button><button class="secondary" onclick="waterReset()">重置</button></div></div><div class="callout warning"><b>为什么不能移动长板？</b>宽度变小，短板不变，面积上限只会更小；它不可能得到更优答案。</div></section>
+<section class="chapter" id="write"><div class="chapter-no">05</div><h2>移动零：fast 负责读，slow 负责写</h2><p><code>nums[:slow]</code> 始终表示“已经整理好的非零区域”。fast 扫描新元素，遇到非零就写到 slow 所在位置。</p><div class="card"><div class="array" id="moveArray"></div><p id="moveText">nums = [0,1,0,3,12]。R 是读取位置，W 是下一个非零数应放的位置。</p><button onclick="moveStep()">读取一次</button><button class="secondary" onclick="moveReset()">重置</button></div><pre><code>slow = 0
+for fast in range(len(nums)):
+    if nums[fast] != 0:
+        nums[slow], nums[fast] = nums[fast], nums[slow]
+        slow += 1</code></pre><div class="callout"><b>循环不变量：</b>每轮开始时，<code>[0, slow)</code> 已经是处理过部分中的所有非零元素，顺序不变。</div></section>
+<section class="chapter" id="three"><div class="chapter-no">06</div><h2>两条有序序列与三数之和</h2><div class="compare"><div class="card"><h3>两个数组求交集</h3><pre><code>i = j = 0
+while i < len(a) and j < len(b):
+    if a[i] == b[j]:
+        answer.append(a[i]); i += 1; j += 1
+    elif a[i] < b[j]: i += 1
+    else: j += 1</code><p>较小的一方不可能与对方当前及之后的更大元素相等，因此安全前进。</p></div><div class="card"><h3>三数之和</h3><pre><code>nums.sort()
+for i in range(n - 2):
+    if i > 0 and nums[i] == nums[i-1]: continue
+    left, right = i + 1, n - 1
+    while left < right:
+        total = nums[i] + nums[left] + nums[right]
+        # 按 total 与 0 的关系移动，并跳过重复值</code><p>固定第一个数后，问题退化成有序两数之和。</p></div></div><div class="card"><div class="array" id="threeArray"></div><p id="threeText">[-4,-1,-1,0,1,2]：固定 i，再让左右指针寻找 -nums[i]。</p><button onclick="threeStep()">演示下一步</button><button class="secondary" onclick="threeReset()">重置</button></div></section>
+<section class="chapter" id="summary"><div class="chapter-no">07</div><h2>双指针不是模板题，是“排除证明”</h2><div class="three-col"><div class="card"><h3>先找顺序</h3><p>数组已排序？能否排序？是否存在单调变化？</p></div><div class="card"><h3>定义指针含义</h3><p>是候选边界、读写位置，还是两条序列的进度？</p></div><div class="card"><h3>证明移动</h3><p>移动一个指针时，为什么被跨过的答案都不可能成立？</p></div></div><div class="quiz" data-answer="b"><h3>小测验</h3><p>有序数组两数之和中，当前和小于 target，应该怎么做？</p><button data-choice="a">right 左移</button><button data-choice="b">left 右移</button><button data-choice="c">两个都移动</button><p class="feedback"></p></div></section>
+</main><script src="../shared/course.js"></script><script>
+CourseUI.init(7);CourseUI.quiz();const $=s=>document.querySelector(s);
+const chars=[...'racecar'];let pl=0,pr=chars.length-1;function palDraw(){ $('#palArray').innerHTML=chars.map((c,i)=>`<span class="cell ${(i===pl||i===pr)&&pl<=pr?'hot':''} ${i<pl||i>pr?'done':''}">${c}<small>${i===pl?' L':''}${i===pr?' R':''}</small></span>`).join('')}
+function palReset(){pl=0;pr=chars.length-1;palDraw();$('#palText').textContent='字符串 “racecar”。左右字符相等，才有必要继续看里面。'}function palStep(){if(pl>=pr){$('#palText').textContent='所有外层都相等：它是回文。';return}$('#palText').textContent=`${chars[pl]} == ${chars[pr]}，排除这对外层字符，继续向内。`;pl++;pr--;palDraw()}
+const sn=[1,2,4,6,10],target=9;let sl=0,sr=sn.length-1,elim=[];function sumDraw(){ $('#sumArray').innerHTML=sn.map((v,i)=>`<span class="cell ${i===sl||i===sr?'hot':''} ${elim.includes(i)?'done':''}">${v}<small>${i===sl?' L':''}${i===sr?' R':''}</small></span>`).join('');$('#sumEliminated').innerHTML=elim.map(i=>`<span>排除 ${sn[i]}</span>`).join('')}
+function sumReset(){sl=0;sr=sn.length-1;elim=[];sumDraw();$('#sumText').textContent='从最小值和最大值开始。'}function sumStep(){if(sl>=sr)return;const total=sn[sl]+sn[sr];if(total===target){$('#sumText').innerHTML=`${sn[sl]} + ${sn[sr]} = <b>${target}</b>，找到答案。`;return}if(total<target){$('#sumText').textContent=`${sn[sl]} + ${sn[sr]} = ${total} 太小；排除 ${sn[sl]}，left 右移。`;elim.push(sl++)}else{$('#sumText').textContent=`${sn[sl]} + ${sn[sr]} = ${total} 太大；排除 ${sn[sr]}，right 左移。`;elim.push(sr--)}sumDraw()}
+const heights=[1,8,6,2,5,4,8,3,7];let wl=0,wr=heights.length-1,wb=0;function waterDraw(){ $('#waterBars').innerHTML=heights.map((h,i)=>`<div class="bar ${i===wl||i===wr?'hot':''}" style="height:${h*24}px"><span>${h}</span></div>`).join('')}
+function waterReset(){wl=0;wr=heights.length-1;wb=0;waterDraw();$('#waterBest').textContent=0;$('#waterText').textContent='height = [1,8,6,2,5,4,8,3,7]'}function waterStep(){if(wl>=wr)return;const area=(wr-wl)*Math.min(heights[wl],heights[wr]);wb=Math.max(wb,area);const oldL=wl,oldR=wr;if(heights[wl]<=heights[wr])wl++;else wr--;$('#waterBest').textContent=wb;$('#waterText').textContent=`下标 ${oldL} 与 ${oldR}：面积 = ${oldR-oldL} × min(${heights[oldL]}, ${heights[oldR]}) = ${area}；移动较短的一侧。`;waterDraw()}
+let mn=[0,1,0,3,12],mf=0,ms=0;function moveDraw(){ $('#moveArray').innerHTML=mn.map((v,i)=>`<span class="cell ${i===mf||i===ms?'hot':''} ${i<ms?'done':''}">${v}<small>${i===ms?' W':''}${i===mf?' R':''}</small></span>`).join('')}
+function moveReset(){mn=[0,1,0,3,12];mf=0;ms=0;moveDraw();$('#moveText').textContent='nums = [0,1,0,3,12]。R 是读取位置，W 是下一个非零数应放的位置。'}function moveStep(){if(mf>=mn.length){$('#moveText').textContent='扫描完成；非零数顺序保持不变，零被移动到末尾。';return}const v=mn[mf];if(v!==0){[mn[ms],mn[mf]]=[mn[mf],mn[ms]];$('#moveText').textContent=`读到非零 ${v}：与写入位置 ${ms} 交换，然后 W 前进。`;ms++}else $('#moveText').textContent=`读到 0：W 不动，只有 R 继续。`;mf++;moveDraw()}
+const tn=[-4,-1,-1,0,1,2],tsteps=[[0,1,5,'和为 -3，太小，left 右移'],[0,2,5,'和为 -3，太小，left 右移'],[0,3,5,'和为 -2，太小，left 右移'],[1,2,5,'得到 [-1,-1,2]；记录并跳过重复值'],[1,3,4,'得到 [-1,0,1]；记录并收缩两端']];let tsi=0;function threeReset(){tsi=0;$('#threeArray').innerHTML=tn.map(v=>`<span class="cell">${v}</span>`).join('');$('#threeText').textContent='[-4,-1,-1,0,1,2]：固定 i，再让左右指针寻找 -nums[i]。'}function threeStep(){if(tsi>=tsteps.length)return;const [i,l,r,t]=tsteps[tsi++];$('#threeArray').innerHTML=tn.map((v,x)=>`<span class="cell ${x===i||x===l||x===r?'hot':''}">${v}<small>${x===i?' i':''}${x===l?' L':''}${x===r?' R':''}</small></span>`).join('');$('#threeText').textContent=t}
+palReset();sumReset();waterReset();moveReset();threeReset();
+</script></body></html>
