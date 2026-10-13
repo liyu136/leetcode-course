@@ -25,6 +25,11 @@
 2. 使用 [第 2 讲 Notebook 练习](exercises/02-exercises.ipynb) 编码。
 3. 完成并自测后，再查看 [第 2 讲参考答案](answers/02-answers.md)。
 
+完成基础内容后继续学习：
+
+- [第 2b 讲：数组进阶——前缀信息、区间与矩阵](lessons/02b-array-prefix-interval-matrix.md) · [Notebook 练习](exercises/02b-exercises.ipynb)
+- [第 2c 讲：经典数组技巧——异或、投票、三色划分与排列](lessons/02c-classic-array-techniques.md) · [Notebook 练习](exercises/02c-exercises.ipynb)
+
 ### 第 3 讲：哈希表、`set` 与 `dict`
 
 1. 学习 [第 3 讲：哈希思想、哈希表、set 与 dict](lessons/03-hash-tables-set-dict.md)。
@@ -36,20 +41,25 @@
 1. 学习 [第 4 讲：栈——保存尚未完成的工作](lessons/04-stack.md)。
 2. 使用 [第 4 讲 Notebook 练习](exercises/04-exercises.ipynb) 编码。
 3. 完成并自测后，再查看 [第 4 讲参考答案](answers/04-answers.md)。
+4. 掌握基础单调栈后，继续学习 [第 4b 讲：单调栈与单调队列](lessons/04b-monotonic-stack-deque.md)，并完成 [Notebook 练习](exercises/04b-exercises.ipynb)。
 
 ### 第 5–8 讲
 
 - 第 5 讲：[队列、双端队列与 BFS](lessons/05-queue-deque-bfs.md) · [Notebook 练习](exercises/05-exercises.ipynb)
 - 第 6 讲：[链表——通过引用连接数据](lessons/06-linked-list.md) · [Notebook 练习](exercises/06-exercises.ipynb)
+- 第 6b 讲：[链表进阶——间隔指针、分段反转、归并与 LRU](lessons/06b-linked-list-advanced-lru.md) · [Notebook 练习](exercises/06b-exercises.ipynb)
 - 第 7 讲：[二叉树与递归遍历](lessons/07-binary-tree-recursion.md) · [Notebook 练习](exercises/07-exercises.ipynb)
 - 第 8 讲：[二叉搜索树、层序遍历与树的综合题](lessons/08-bst-level-order.md) · [Notebook 练习](exercises/08-exercises.ipynb)
+- 第 8b 讲：[二叉树进阶递归模式](lessons/08b-tree-advanced-patterns.md)
 
 这些 Notebook 的末尾包含前面章节的累计复习题。参考答案暂不提供，完成后统一批改。
 
 ### 第 9–10 讲：堆与图
 
 - 第 9 讲：[堆与优先队列——反复取出当前最重要的元素](lessons/09-heap-priority-queue.md)
+- 第 9b 讲：[双堆——动态维护数据流中位数](lessons/09b-two-heaps-streaming.md) · [Notebook 练习](exercises/09b-exercises.ipynb)
 - 第 10 讲：[图、DFS 与 BFS——在关系网络中搜索](lessons/10-graph-dfs-bfs.md)
+- 第 10b 讲：[Trie 前缀树——按字符路径保存字符串集合](lessons/10b-trie-prefix-tree.md) · [Notebook 练习](exercises/10b-exercises.ipynb)
 
 第 9 讲重点是 Python `heapq`、大小为 `k` 的堆、Top K 和多路合并。第 10 讲统一讲解邻接表、DFS、BFS、连通分量、图中环、拓扑排序与克隆图。
 
@@ -63,10 +73,13 @@
 ### 第 13–15 讲：二分、回溯与动态规划
 
 - 第 13 讲：[二分查找——利用单调性每次排除一半](lessons/13-binary-search.md)
+- 第 13b 讲：[二分分割——两个有序数组的中位数](lessons/13b-median-two-sorted-arrays.md) · [Notebook 练习](exercises/13b-exercises.ipynb)
 - 第 14 讲：[回溯——在选择树中尝试、撤销与继续](lessons/14-backtracking.md)
+- 第 14b 讲：[贪心算法——只保留对未来最有利的状态](lessons/14b-greedy.md) · [Notebook 练习](exercises/14b-exercises.ipynb)
 - 第 15 讲：[动态规划入门——保存重复子问题的答案](lessons/15-dynamic-programming-intro.md)
+- 第 15b 讲：[进阶动态规划——布尔状态、双状态、区间与双序列](lessons/15b-dynamic-programming-advanced.md) · [Notebook 练习](exercises/15b-exercises.ipynb)
 
-这三讲分别建立单调搜索、选择树搜索和重复子问题求解的完整思考流程。完成后，再进入 Hot 100 按模式混合训练。
+基础讲建立单调搜索、选择树搜索和重复子问题求解的完整思考流程；`b` 讲补齐 Hot 100 中较特殊的分割二分、贪心证明和字符串 DP。完成后，再进入 Hot 100 按模式混合训练。
 
 ## 使用规则
 
